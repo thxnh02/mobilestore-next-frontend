@@ -1,0 +1,23 @@
+{
+  "name": "mobilestore-next-frontend",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "lucide-react": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
+  }
+}
