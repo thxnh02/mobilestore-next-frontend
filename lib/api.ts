@@ -106,7 +106,9 @@ async function request<T>(path: string, options: ApiRequestOptions = {}): Promis
   const payload = await readPayload<T>(response);
   if (!response.ok || !payload.success) {
     const detail = getErrorDetail(payload.errors);
-    const message = response.status === 401 ? 'Phiên đăng nhập đã hết hạn hoặc không hợp lệ.' : detail || payload.message || 'Request failed';
+    const message = response.status === 401 && path !== '/Auth/login'
+      ? 'Phiên đăng nhập đã hết hạn hoặc không hợp lệ.'
+      : detail || payload.message || 'Request failed';
     throw new ApiError(message, response.status, payload.errors);
   }
   return payload.data as T;

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { BadgePercent, ChevronRight, Grid3X3, Heart, Home, LogOut, Menu, PackageCheck, Search, ShieldCheck, ShoppingCart, Smartphone, Sparkles, Truck, UserCircle2, X } from 'lucide-react';
+import { BadgePercent, ChevronRight, Grid3X3, Heart, Home, LogOut, Menu, Newspaper, PackageCheck, Search, ShieldCheck, ShoppingCart, Smartphone, Sparkles, Truck, UserCircle2, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,7 @@ export function Header() {
   const links: NavLink[] = [
     { href: '/', label: 'Trang chủ', match: (p) => p === '/' },
     { href: '/products', label: 'Sản phẩm', match: (p) => p.startsWith('/products') || p.startsWith('/p/') },
+    { href: '/news', label: 'Bản tin', match: (p) => p.startsWith('/news') },
     { href: '/products?sortBy=price&sortOrder=asc', label: 'Giá tốt' },
     { href: '/orders', label: 'Đơn hàng', match: (p) => p.startsWith('/orders') },
   ];
@@ -98,7 +99,7 @@ export function Header() {
           <nav className="nav headerNav">
             {links.map((link) => (
               <Link key={link.href} href={link.href} className={cn('navLink', (link.match ? link.match(pathname) : pathname === link.href) && 'active')}>
-                {link.href === '/' ? <Home size={15} /> : link.href === '/products' ? <Grid3X3 size={15} /> : null}
+                {link.href === '/' ? <Home size={15} /> : link.href === '/products' ? <Grid3X3 size={15} /> : link.href === '/news' ? <Newspaper size={15} /> : null}
                 {link.label}
               </Link>
             ))}
@@ -120,6 +121,7 @@ export function Header() {
             <div className="mobileMenuGrid">
               <Link href="/products">Tất cả sản phẩm</Link>
               <Link href="/products?sortBy=price&sortOrder=asc">Giá tốt</Link>
+              <Link href="/news">Bản tin</Link>
               <Link href="/cart">Giỏ hàng</Link>
               <Link href="/orders">Đơn hàng</Link>
               {isAdmin ? <Link href="/admin">Admin</Link> : null}
@@ -146,6 +148,7 @@ export function Footer() {
           <p><Link href="/products">Tất cả sản phẩm</Link></p>
           <p><Link href="/products?sortBy=createdAt&sortOrder=desc">Hàng mới</Link></p>
           <p><Link href="/products?sortBy=price&sortOrder=asc">Giá tốt</Link></p>
+          <p><Link href="/news">Bản tin</Link></p>
           <p><Link href="/wishlist">Đã lưu</Link></p>
         </div>
 

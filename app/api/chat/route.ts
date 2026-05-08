@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   if (!message) return NextResponse.json({ error: 'Message is required.' }, { status: 400 });
 
   const products = await loadProducts();
-  const aiAnswer = await askOpenAI(message, products);
+  const aiAnswer = await askGroq(message, products);
   if (aiAnswer) return NextResponse.json({ message: aiAnswer });
 
   const text = message.toLowerCase();
@@ -58,45 +58,58 @@ function formatProduct(product: Product) {
   return `${product.productName} (${formatMoney(product.price)})`;
 }
 
-async function askOpenAI(message: string, products: Product[]) {
-  const apiKey = process.env.OPENAI_API_KEY;
+async function askGroq(message: string, products: Product[]) {
+  const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) return '';
 
   const productContext = products.slice(0, 20).map((product) => ({
     id: product.id,
     name: product.productName,
     category: product.categoryName,
+    brand: product.brandName,
     price: product.price,
+    effectivePrice: product.effectivePrice,
+    isFlashSaleActive: product.isFlashSaleActive,
+    discountPercent: product.discountPercent,
     stock: product.stockQuantity,
     description: product.description,
+    specifications: product.specifications?.map((spec) => `${spec.specKey}: ${spec.specValue}`),
   }));
 
   try {
-    const response = await fetch('https://api.openai.com/v1/responses', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-        input: [
+        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+        messages: [
           {
             role: 'system',
-            content: 'Bạn là tư vấn viên MobileStore. Trả lời ngắn gọn bằng tiếng Việt, lịch sự và mang giọng điệu của một website bán hàng thật. Chỉ dựa trên productContext.',
+            content: [
+              'Bạn là tư vấn viên MobileStore.',
+              'Trả lời bằng tiếng Việt ngắn gọn, lịch sự, hữu ích.',
+              'Chỉ dựa trên productContext và nói rõ nếu dữ liệu hiện có chưa đủ để kết luận.',
+              'Ưu tiên sản phẩm còn hàng, giá hiệu lực, flash sale và nhu cầu học tập/làm việc/chụp ảnh/chơi game khi người dùng hỏi.',
+              'Không bịa giá, tồn kho, coupon hoặc chính sách không có trong dữ liệu.',
+            ].join(' '),
           },
           {
             role: 'user',
             content: JSON.stringify({ question: message, productContext }),
           },
         ],
+        temperature: 0.4,
+        max_completion_tokens: 500,
       }),
       cache: 'no-store',
     });
 
     if (!response.ok) return '';
-    const payload = await response.json() as { output_text?: string; output?: Array<{ content?: Array<{ text?: string }> }> };
-    return payload.output_text || payload.output?.flatMap((item) => item.content || []).map((item) => item.text).filter(Boolean).join('\n') || '';
+    const payload = await response.json() as { choices?: Array<{ message?: { content?: string } }> };
+    return payload.choices?.[0]?.message?.content?.trim() || '';
   } catch {
     return '';
   }
